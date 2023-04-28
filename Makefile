@@ -1,9 +1,8 @@
 .PHONY: config configure_from_env
 
-CONFIG_FILE = "./nv7-smart-led-controls/secrets.h"
+CONFIG_FILE = "./nv7-smart-led-controls/config.h"
 
 configure:
-
 	WIFI_SSID_NAME="$$(read -p 'WiFi SSID: ' ssid && echo $$ssid)" \
 	WIFI_PASSWORD="$$(read -p 'WiFi Password: ' pass && echo $$pass)" \
 	LED_PIN="$$(read -p 'LED Pin number: ' number && echo $$number)" \
