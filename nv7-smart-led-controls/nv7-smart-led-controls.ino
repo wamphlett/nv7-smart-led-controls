@@ -1,132 +1,49 @@
-int ledPin = 3;
-int readPin = 14;
-int dReadPin = 2;
+#include "config.h"
+#include "controller.h"
+#include "publisher.h"
 
-enum Channel {
-  A, 
-  B
-};
-
-enum Button {
-  UNKNOWN,
-  CHANGE_CHANNEL,
-  MODE,
-  COLOR,
-  SPEED
-};
-
-struct State {
-  Button lastButton;
-  Channel currentChannel;
-};
-
-State controllerState = {UNKNOWN, A};
+Controller controller = Controller(BUTTON_PIN, LED_PIN, 10);
+Publisher publisher = Publisher();
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  Serial.println("Starting!");
-  pinMode(readPin, INPUT_PULLUP);
-  pinMode(dReadPin, INPUT_PULLUP);
-  pinMode(ledPin, OUTPUT);
 
-  // set the current channel
-  setChannel(A);
+  // register the function to be executed when a button is pressed
+  controller.OnPress(handlePress);
+  // send the STARTUP event 
+  publisher.PublishEvent(STARTUP);
 }
 
 void loop() {
   // connectingAnimation();
   // return;
 
-  // put your main code here, to run repeatedly:
-  int pinState = analogRead(readPin); // Read the state of the pin
-
-  if (isIdle(pinState)) {
-    controllerState.lastButton = UNKNOWN;
-    return;
-  }
-
-  // determine what button was pushed
-  Button currentButton = getButton(pinState);
-
-  // Dont do anything if the current button has not changed
-  if (controllerState.lastButton == currentButton) {
-    return;
-  }
-
-  controllerState.lastButton = currentButton;
-
-  switch (currentButton) {
-    case CHANGE_CHANNEL:
-      toggleChannel();
-      break;
-    case MODE:
-      Serial.println("MODE");
-      break;
-    case SPEED:
-      Serial.println("SPEED");
-      break;
-    case COLOR:
-      Serial.println("COLOR");
-      break;
-  }
-
-  delay(10);
-}
-
-bool isIdle(int state) {
-  return state > 500;
-}
-
-bool isTarget(int state, int target) {
-  return state < target + 2 && state > target - 2;
-}
-
-Button getButton(int pinState) {
-  if (isTarget(pinState, 243)) {
-    return CHANGE_CHANNEL;
-  }
-
-  if (isTarget(pinState, 14)) {
-    return COLOR;
-  }
-
-  if (isTarget(pinState, 66)) {
-    return SPEED;
-  }
-
-  if (isTarget(pinState, 127)) {
-    return MODE;
-  }
-
-  return UNKNOWN;
-}
-
-void setChannel(Channel c) {
-  if (c == A) {
-    digitalWrite(ledPin, HIGH);
-  } else {
-    digitalWrite(ledPin, LOW);
-  }
-
-  controllerState.currentChannel = c;
-}
-
-void toggleChannel() {
-  if (controllerState.currentChannel == A) {
-    setChannel(B);
-  } else {
-    setChannel(A);
-  }
+  // poll the controller every 10ms
+  controller.Poll();
 }
 
 void connectingAnimation() { 
-  digitalWrite(ledPin, HIGH);
+  digitalWrite(LED_PIN, HIGH);
   delay(100);
-  digitalWrite(ledPin, LOW);
+  digitalWrite(LED_PIN, LOW);
   delay(80);
-  digitalWrite(ledPin, HIGH);
+  digitalWrite(LED_PIN, HIGH);
   delay(100);
-  digitalWrite(ledPin, LOW);
+  digitalWrite(LED_PIN, LOW);
   delay(800);
+}
+
+// function to be executed each time a button is pressed
+void handlePress(Button button) {
+  if (button == CHANGE_CHANNEL) {
+    controller.ToggleChannel();
+    if (controller.CurrentChannel() == A) {
+      Serial.println("Channel set to A");
+    } else {
+      Serial.println("Channel set to B");
+    }
+  }
+
+  publisher.PublishButtonPushed(button, controller.CurrentChannel());
 }
