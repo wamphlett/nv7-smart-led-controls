@@ -14,6 +14,7 @@ void Controller::Poll() {
   if ((millis() - this->_lastPoll) < this->_pollRate) {
     return;
   }
+
   this->_lastPoll = millis();
 
   this->_buttonState = analogRead(this->_buttonPin);
@@ -54,19 +55,19 @@ bool Controller::IsIdle() {
 }
 
 Button Controller::getButton() {
-  if (this->isTarget(this->_buttonState, 243)) {
+  if (this->isTarget(this->_buttonState, 269)) {
     return CHANGE_CHANNEL;
   }
 
-  if (this->isTarget(this->_buttonState, 14)) {
+  if (this->isTarget(this->_buttonState, 0)) {
     return COLOR;
   }
 
-  if (this->isTarget(this->_buttonState, 66)) {
+  if (this->isTarget(this->_buttonState, 62)) {
     return SPEED;
   }
 
-  if (this->isTarget(this->_buttonState, 127)) {
+  if (this->isTarget(this->_buttonState, 135)) {
     // mode is able to be held, check if the button is being held
     if ((millis() - this->_lastPress) > 800) {
       return MODE_HOLD;
@@ -78,7 +79,7 @@ Button Controller::getButton() {
 }
 
 bool Controller::isTarget(int state, int target) {
-  return state < target + 2 && state > target - 2;
+  return state < target + 10 && state > target - 10;
 }
 
 void Controller::ToggleChannel() {

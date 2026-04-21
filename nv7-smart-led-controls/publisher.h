@@ -1,3 +1,5 @@
+#include <WiFiNINA.h>
+#include <ArduinoMqttClient.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "controller.h"
